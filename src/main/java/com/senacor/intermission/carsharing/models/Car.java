@@ -41,7 +41,7 @@ public class Car {
 
     @Override
     public String toString(){
-        return "Car{" + "name='" + name + '\'' + ", color='" + color + '\'' + ", licensePlate='" + licensePlate + '\'' + '}';
+        return "{" + "name='" + name + '\'' + ", color='" + color + '\'' + ", licensePlate='" + licensePlate + '\'' + '}';
     }
 
     @Override
