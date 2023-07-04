@@ -2,46 +2,53 @@ package com.senacor.intermission.carsharing.models;
 
 public class Car {
     
-    public Car(String name, String color, String licensePlate){
-        this.name = name;
-        this.color = color;
+    public Car(String brand, String model, String color, String licensePlate, String fuelType){
+        this.avaible = true;
+        this.brand = brand;
+        this.model = model;
         this.licensePlate = licensePlate;
+        this.fuelType = fuelType;
+        this.color = color;
     }
 
     public Car() {
+        this.avaible = false;
     }
 
-    private String name;
-    private String color;
+    private boolean avaible;
+    private String brand;
+    private String model;
     private String licensePlate;
-
-    public String getName(){
-        return name;
-    }
-
-    public String getColor(){
-        return color;
-    }
-
-    public String getLicensePlate(){
-        return licensePlate;
-    }
-
-    public void setName(String name){
-        this.name = name;
-    }
-
-    public void setColor(String color){
-        this.color = color;
-    }
-
-    public void setLicensePlate(String licensePlate){
-        this.licensePlate = licensePlate;
-    }
+    private String fuelType;
+    private String color;
+    private long timestampStartRent;
+    private long timestampEndRent;
 
     @Override
     public String toString(){
-        return "{" + "name='" + name + '\'' + ", color='" + color + '\'' + ", licensePlate='" + licensePlate + '\'' + '}';
+        return "{" + "name='" + brand + " " + + '\'' + ", color='" + color + '\'' + ", licensePlate='" + licensePlate + '\'' + ", fueltype='" + fuelType +  '\'' + "}";
+    }
+
+    public boolean isAvaible(){
+        return avaible;
+    }
+
+    public void setAvaible(boolean avaible){
+        this.avaible = avaible;
+    }
+
+    public void setRented(){
+        this.avaible = false;
+        this.timestampStartRent = System.currentTimeMillis();
+    }
+
+    public void setReturned(){
+        this.avaible = true;
+        this.timestampEndRent = System.currentTimeMillis();
+    }
+
+    public long getRentedTimeInMillseconds(){
+        return this.timestampEndRent - this.timestampStartRent;
     }
 
     @Override
@@ -53,17 +60,17 @@ public class Car {
 
         Car car = (Car) o;
 
-        if(name != null ? !name.equals(car.name) : car.name != null)
+        if(brand != null ? !brand.equals(car.brand) : car.brand != null)
             return false;
-        if(color != null ? !color.equals(car.color) : car.color != null)
+        if(model != null ? !model.equals(car.model) : car.model != null)
             return false;
         return licensePlate != null ? licensePlate.equals(car.licensePlate) : car.licensePlate == null;
     }
 
     @Override
     public int hashCode(){
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (color != null ? color.hashCode() : 0);
+        int result = brand != null ? brand.hashCode() : 0;
+        result = 31 * result + (model != null ? model.hashCode() : 0);
         result = 31 * result + (licensePlate != null ? licensePlate.hashCode() : 0);
         return result;
     }
