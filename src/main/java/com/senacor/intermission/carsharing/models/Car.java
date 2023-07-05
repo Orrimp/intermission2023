@@ -1,5 +1,8 @@
 package com.senacor.intermission.carsharing.models;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class Car {
     
     public Car(String brand, String model, String color, String licensePlate, String fuelType){
@@ -16,17 +19,21 @@ public class Car {
     }
 
     private boolean avaible;
-    private String brand;
-    private String model;
-    private String licensePlate;
-    private String fuelType;
-    private String color;
+    private @Getter String brand;
+    private @Getter String model;
+    private @Getter String licensePlate;
+    private @Getter String fuelType;
+    private @Getter String color;
     private long timestampStartRent;
     private long timestampEndRent;
 
     @Override
     public String toString(){
-        return "{" + "name='" + brand + " " + + '\'' + ", color='" + color + '\'' + ", licensePlate='" + licensePlate + '\'' + ", fueltype='" + fuelType +  '\'' + "}";
+        return "Car {" + "name='" + brand + " " + + '\'' + ", color='" + color + '\'' + ", licensePlate='" + licensePlate + '\'' + ", fueltype='" + fuelType +  '\'' + "}";
+    }
+
+    public String toJSON(){
+        return "{" + "\"name\":\"" + brand + " " + '\"' + ", \"color\":\"" + color + '\"' + ", \"licensePlate\":\"" + licensePlate + '\"' + ", \"fuelType\":\"" + fuelType +  '\"' + "}";
     }
 
     public boolean isAvaible(){

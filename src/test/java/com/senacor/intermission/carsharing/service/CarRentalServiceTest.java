@@ -10,7 +10,6 @@ public class CarRentalServiceTest {
     
     private CarRentalService carRentalService;
 
-
     @BeforeEach
     public void setUp() {
         carRentalService = new CarRentalService();

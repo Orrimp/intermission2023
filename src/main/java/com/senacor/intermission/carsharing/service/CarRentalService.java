@@ -2,6 +2,8 @@ package com.senacor.intermission.carsharing.service;
 
 import java.util.HashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.senacor.intermission.carsharing.models.Car;
@@ -10,6 +12,7 @@ import com.senacor.intermission.carsharing.models.Car;
 public class CarRentalService {
 
     private HashMap<String, Car> carPool = new HashMap<>();
+    Logger logger = LoggerFactory.getLogger(CarRentalService.class);
 
     private int poolCounter = 0;
 
@@ -26,18 +29,56 @@ public class CarRentalService {
         return carPool;
     }
 
-    public int calculateBill(Car car, boolean carOnTime, boolean carcheckOk){
+    public int calculateBill(Car car, boolean carOnTime, boolean carcheckOk) {
+        logger.info("Calculating bill with carOnTime: " + carOnTime + " and carcheckOk: " + carcheckOk + " for car: " + car.toString());
+
         int billValue = 0;
-        if(carOnTime && carcheckOk){
-            billValue += 12000;
-        } else if(carOnTime && !carcheckOk){
-            billValue += 50000;
-        } else if(!carOnTime && carcheckOk){
-            billValue += 1050;
-        } else if(!carOnTime && !carcheckOk){
-            billValue = 100000;
+        switch (getBillType(carOnTime, carcheckOk)) {
+            case ON_TIME_AND_CHECK_OK:
+                billValue += 12000;
+                break;
+            case ON_TIME_AND_CHECK_NOT_OK:
+                billValue += 50000;
+                break;
+            case NOT_ON_TIME_AND_CHECK_OK:
+                billValue += 1050;
+                break;
+            case NOT_ON_TIME_AND_CHECK_NOT_OK:
+                billValue = 100000;
+                break;
+            default:
+                billValue = -1;
+                break;
         }
         return billValue;
+    }
+
+    private BillType getBillType(boolean carOnTime, boolean carcheckOk) {
+        return BillType.valueOf(carOnTime + "_" + carcheckOk);
+    }
+
+    private enum BillType {
+        ON_TIME_AND_CHECK_OK(true, true),
+        ON_TIME_AND_CHECK_NOT_OK(true, false),
+        NOT_ON_TIME_AND_CHECK_OK(false, true),
+        NOT_ON_TIME_AND_CHECK_NOT_OK(false, false),
+        INVALID(false, false);
+
+        private final boolean carOnTime;
+        private final boolean carCheckOk;
+
+        BillType(boolean carOnTime, boolean carCheckOk) {
+            this.carOnTime = carOnTime;
+            this.carCheckOk = carCheckOk;
+        }
+
+        public boolean isCarOnTime() {
+            return carOnTime;
+        }
+
+        public boolean isCarCheckOk() {
+            return carCheckOk;
+        }
     }
 
     public boolean carCheckOk(Car car){
@@ -62,5 +103,13 @@ public class CarRentalService {
 
     public void addCars(HashMap<String, Car> carPool) {
         this.carPool.putAll(carPool);
+    }
+
+    public void rentCar(Car car) {
+        car.setAvaible(false);
+    }
+
+    public void returnCar(Car car) {
+        car.setAvaible(true);
     }
 }
