@@ -12,10 +12,14 @@ import com.senacor.intermission.carsharing.models.Car;
 public class CarRentalService {
 
     private HashMap<String, Car> carPool = new HashMap<>();
+
     Logger logger = LoggerFactory.getLogger(CarRentalService.class);
 
     private int poolCounter = 0;
 
+    /**
+     * 
+     */
     public CarRentalService() {
         carPool.put("0", new Car("Porsche", "911", "red", "M-AB-123", "gasoline"));
         carPool.put("1", new Car("BMW", "i3", "white", "M-AB-123", "electric"));
@@ -25,6 +29,11 @@ public class CarRentalService {
         carPool.put("5", new Car("Tesla", "Model 3", "red", "M-IJ-345", "electric"));
     }
 
+    /** 
+     * 
+     * @param carPool
+     * @return
+     */
     public HashMap<String, Car> getCarPool(){
         return carPool;
     }
@@ -49,6 +58,18 @@ public class CarRentalService {
             default:
                 billValue = -1;
                 break;
+        }
+        return billValue;
+    }
+
+    //Check car for damages and fuel level and return bill additional 10000 if car is not ok 
+    public int checkCar(Car car) {
+        logger.info("Checking car: " + car.toString());
+        int billValue = 0;
+        if (carCheckOk(car)) {
+            billValue += 0;
+        } else {
+            billValue += 10000;
         }
         return billValue;
     }
@@ -112,4 +133,12 @@ public class CarRentalService {
     public void returnCar(Car car) {
         car.setAvaible(true);
     }
+
+    //Add method to allow customers to buy the rented car. Remove the car from the car pool and return the car to the customer
+    public void sellCar(Car car) {
+        car.setAvaible(true);
+        carPool.remove(car);
+    }
+
+
 }
