@@ -96,29 +96,24 @@ func (m *Pipeline) Tree(ctx context.Context, dir *Directory, depth string) (stri
 }
 
 func (m *Pipeline) MavenBuild(ctx context.Context, dir *Directory) (string, error) {
-	return dag.Container().
-		From("maven:latest").
-		WithMountedDirectory("/src", dir).
-		WithWorkdir("/src").
-		WithExec([]string{"ls", "-la"}).
-		WithExec([]string{"mvn", "package"}).
-		Stdout(ctx)
+	return m.runMavenCommand(ctx, dir, "package")
 }
 
 func (m *Pipeline) MavenTest(ctx context.Context, dir *Directory) (string, error) {
-	return dag.Container().
-		From("maven:latest").
-		WithMountedDirectory("/src", dir).
-		WithWorkdir("/src").
-		WithExec([]string{"mvn", "test"}).
-		Stdout(ctx)
+	return m.runMavenCommand(ctx, dir, "test")
 }
 
 func (m *Pipeline) MavenVerify(ctx context.Context, dir *Directory) (string, error) {
+	return m.runMavenCommand(ctx, dir, "clean", "verify")
+}
+
+func (m *Pipeline) runMavenCommand(ctx context.Context, dir *Directory, args ...string) (string, error) {
+	mavenCache := dag.CacheVolume("maven-cache")
 	return dag.Container().
 		From("maven:latest").
+		WithMountedCache("/root/.m2", mavenCache).
 		WithMountedDirectory("/src", dir).
 		WithWorkdir("/src").
-		WithExec([]string{"mvn", "clean", "verify"}).
+		WithExec(append([]string{"mvn"}, args...)).
 		Stdout(ctx)
 }
