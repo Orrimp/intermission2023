@@ -113,3 +113,12 @@ func (m *Pipeline) MavenTest(ctx context.Context, dir *Directory) (string, error
 		WithExec([]string{"mvn", "test"}).
 		Stdout(ctx)
 }
+
+func (m *Pipeline) MavenVerify(ctx context.Context, dir *Directory) (string, error) {
+	return dag.Container().
+		From("maven:latest").
+		WithMountedDirectory("/src", dir).
+		WithWorkdir("/src").
+		WithExec([]string{"mvn", "clean", "verify"}).
+		Stdout(ctx)
+}
