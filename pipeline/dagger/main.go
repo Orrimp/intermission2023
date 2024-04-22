@@ -98,9 +98,18 @@ func (m *Pipeline) Tree(ctx context.Context, dir *Directory, depth string) (stri
 func (m *Pipeline) MavenBuild(ctx context.Context, dir *Directory) (string, error) {
 	return dag.Container().
 		From("maven:latest").
-		WithMountedDirectory("/usr/src/mymaven", dir).
-		WithWorkdir("/usr/src/mymaven").
+		WithMountedDirectory("/src", dir).
+		WithWorkdir("/src").
 		WithExec([]string{"ls", "-la"}).
+		WithExec([]string{"mvn", "package"}).
+		Stdout(ctx)
+}
+
+func (m *Pipeline) MavenTest(ctx context.Context, dir *Directory) (string, error) {
+	return dag.Container().
+		From("maven:latest").
+		WithMountedDirectory("/src", dir).
+		WithWorkdir("/src").
 		WithExec([]string{"mvn", "test"}).
 		Stdout(ctx)
 }
