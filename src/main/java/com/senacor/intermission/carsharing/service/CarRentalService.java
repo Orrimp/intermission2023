@@ -75,7 +75,12 @@ public class CarRentalService {
     }
 
     private BillType getBillType(boolean carOnTime, boolean carcheckOk) {
-        return BillType.valueOf(carOnTime + "_" + carcheckOk);
+        for (BillType billType : BillType.values()) {
+            if (billType.isCarOnTime() == carOnTime && billType.isCarCheckOk() == carcheckOk) {
+                return billType;
+            }
+        }
+        return BillType.INVALID;
     }
 
     private enum BillType {
