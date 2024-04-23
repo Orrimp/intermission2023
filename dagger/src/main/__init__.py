@@ -51,6 +51,10 @@ class Intermission2023:
             .stdout()
         )
 
+    @function
+    async def hello_world(self) -> str:
+        return "hello world"
+
     # export MY_TOKEN="my_token_is_here"
     # dagger call show-token --token=env:MY_TOKEN
     @function
