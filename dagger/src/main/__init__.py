@@ -88,18 +88,24 @@ class Intermission2023:
             .with_mounted_cache("/root/.m2", maven_cache)
             .with_mounted_directory("/src", directory_arg)
             .with_workdir("/src")
-
             #     TODO: store report to mounted directory
         )
         build = await (
             app.with_exec(["mvn", "clean", "verify"])
         )
-
-        bla = await build.directory(".").entries()
-        for i in bla:
-            print("entry= "+i)
-
         return build
+
+    @function
+    async def tree(self, directory_arg: dagger.Directory, depth: str) -> str:
+        return await (
+            dag.container()
+            .from_("alpine:latest")
+            .with_mounted_directory("/src", directory_arg)
+            .with_workdir("/src")
+            .with_exec(["apk", "add", "tree"])
+            .with_exec(["tree", "-L", depth])
+            .stdout()
+        )
 
     @function
     async def test_jacoco_report_exists(self, directory_arg: dagger.Directory) -> str:
