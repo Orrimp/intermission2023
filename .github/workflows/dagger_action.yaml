@@ -16,6 +16,10 @@ jobs:
         run: pip install dagger-io
       - name: Install Dagger CLI
         run: cd /usr/local && { curl -L https://dl.dagger.io/dagger/install.sh | sh; cd -; }
-      - name: Run Dagger pipeline
+      - name: Run hello world with dagger
         run: dagger call hello-world
+      - name: Run mvn verify with dagger
+        run: dagger call mvn-verify --directory_arg=./ stdout
+      - name: Run show error with dagger
+        run: dagger call show-error
 
