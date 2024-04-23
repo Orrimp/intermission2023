@@ -1,0 +1,12 @@
+{
+  "name": "intermission2023",
+  "sdk": "python",
+  "dependencies": [
+    {
+      "name": "wolfi",
+      "source": "github.com/shykes/daggerverse/wolfi@3d608cb5e6b4b18036a471400bc4e6c753f229d7"
+    }
+  ],
+  "source": "dagger",
+  "engineVersion": "v0.11.1"
+}
