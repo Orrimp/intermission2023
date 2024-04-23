@@ -12,6 +12,9 @@ The first line in this comment block is a short description line and the
 rest is a long description with more detail on the module's purpose or usage,
 if appropriate. All modules should have a short description.
 """
+# TODO: how to handle images
+# TODO: how to handle artifacts (e.g: target/site/jacoco/jacoco.csv)
+# TODO: how to test - can we test?
 
 import dagger
 from dagger import Doc, dag, function, object_type
@@ -22,6 +25,7 @@ import logging
 from dagger.log import configure_logging
 
 configure_logging(logging.DEBUG)
+
 
 @object_type
 class Intermission2023:
@@ -75,22 +79,37 @@ class Intermission2023:
     # dagger call mvn-verify --directory_arg=../ stdout
     @function
     async def mvn_verify(self, directory_arg: dagger.Directory) -> dagger.Container:
+        #async def mvn_verify(self) -> dagger.Container:
         maven_cache = dag.cache_volume("maven-cache")
 
         app = (
             dag.container()
             .from_("maven:3.9-eclipse-temurin-17")
-             .with_mounted_cache("/root/.m2", maven_cache)
+            .with_mounted_cache("/root/.m2", maven_cache)
             .with_mounted_directory("/src", directory_arg)
             .with_workdir("/src")
+
+            #     TODO: store report to mounted directory
+        )
+        build = await (
+            app.with_exec(["mvn", "clean", "verify"])
         )
 
-        build = (
-            app.with_exec(["mvn",  "clean", "verify"])
+        bla = await build.directory(".").entries()
+        for i in bla:
+            print("entry= "+i)
+
+        return build
+
+    @function
+    async def test_jacoco_report_exists(self, directory_arg: dagger.Directory) -> str:
+        return await (
+            dag.container()
+            .with_mounted_directory("/src", directory_arg)
+            .from_("alpine")
+            .with_exec(["ls", "-a", "./src/target/site/jacoco/jacoco.csv"])
+            .stdout()
         )
-
-        return await build
-
 
     @function
     def container_echo(self, string_arg: str) -> dagger.Container:
@@ -111,7 +130,7 @@ class Intermission2023:
 
     @function
     async def build_and_publish(
-        self, build_src: dagger.Directory, build_args: list[str]
+            self, build_src: dagger.Directory, build_args: list[str]
     ) -> str:
         """Build and publish a project using a Wolfi container"""
         # retrieve a new Wolfi container
@@ -122,26 +141,25 @@ class Intermission2023:
 
         )
 
-
     @function
     async def scan_image(
-        self,
-        image_ref: Annotated[
-            str,
-            Doc("The image reference to scan"),
-        ],
-        severity: Annotated[
-            str,
-            Doc("Severity levels to scan for"),
-        ] = "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL",
-        exit_code: Annotated[
-            int,
-            Doc("The exit code to return if vulnerabilities are found"),
-        ] = 0,
-        format: Annotated[
-            str,
-            Doc("The output format to use for the scan results"),
-        ] = "table",
+            self,
+            image_ref: Annotated[
+                str,
+                Doc("The image reference to scan"),
+            ],
+            severity: Annotated[
+                str,
+                Doc("Severity levels to scan for"),
+            ] = "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL",
+            exit_code: Annotated[
+                int,
+                Doc("The exit code to return if vulnerabilities are found"),
+            ] = 0,
+            format: Annotated[
+                str,
+                Doc("The output format to use for the scan results"),
+            ] = "table",
     ) -> str:
         """Scan the specified image for vulnerabilities."""
         return await (
