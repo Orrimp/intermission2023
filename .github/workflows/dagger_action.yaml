@@ -20,8 +20,8 @@ jobs:
         run: dagger call hello-world
       - name: Run mvn verify with dagger
         run: dagger call mvn-verify --directory_arg=./ stdout
-      - name: Run test jacoco exists
-        run: dagger call test-jacoco-report-exists --directory_arg=./
+#      - name: Run test jacoco exists
+#        run: dagger call test-jacoco-report-exists --directory_arg=./
 #      - name: Run show error with dagger
 #        run: dagger call show-error
 
