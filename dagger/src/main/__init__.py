@@ -53,6 +53,7 @@ class Intermission2023:
 
     @function
     async def hello_world(self) -> str:
+        print("hello world is called")
         return "hello world"
 
     # export MY_TOKEN="my_token_is_here"
