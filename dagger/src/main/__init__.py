@@ -17,24 +17,29 @@ if appropriate. All modules should have a short description.
 # TODO: how to test - can we test?
 
 import dagger
-from dagger import Doc, dag, function, object_type
-import logging
+# from dagger import Doc, dag, function, object_type
+# from dagger.log import configure_logging
 from typing import Annotated
-import logging
 
-from dagger.log import configure_logging
+from dagger.sdk.src.dagger import function, object_type
 
-configure_logging(logging.DEBUG)
+
+# import logging
+
+
+
+# configure_logging(logging.DEBUG)
 
 
 @object_type
 class Intermission2023:
 
+    ## like test container
     @function
     def http_service(self) -> dagger.Service:
         """Starts and returns an HTTP service."""
         return (
-            dag.container()
+            dagger.dag.container()
             .from_("python")
             .with_workdir("/srv")
             .with_new_file("index.html", contents="Hello, world!")
@@ -48,7 +53,7 @@ class Intermission2023:
     async def get(self) -> str:
         """Sends a request to an HTTP service and returns the response."""
         return await (
-            dag.container()
+            dagger.dag.container()
             .from_("alpine")
             .with_service_binding("www", self.http_service())
             .with_exec(["wget", "-O-", "http://www:8080"])
@@ -62,6 +67,7 @@ class Intermission2023:
 
     # export MY_TOKEN="my_token_is_here"
     # dagger call show-token --token=env:MY_TOKEN
+    # -- what can be provided as Secret //TODO: specify
     @function
     async def show_token(self, token: dagger.Secret) -> str:
         print("showing token")
@@ -73,32 +79,35 @@ class Intermission2023:
     def show_error(self) -> str:
         print("some function is running")
         raise ValueError("this is my personal error message")
+        ## docu nicht vollständig - ValueError
         print("this is never called")
         return "never shown"
 
-    # dagger call mvn-verify --directory_arg=../ stdout
+    # dagger call mvn-verify --directory_arg=../ stdout (if in dagger)
+    # dagger call mvn-verify --directory_arg=./ stdout (if in root)
     @function
     async def mvn_verify(self, directory_arg: dagger.Directory) -> dagger.Container:
-        #async def mvn_verify(self) -> dagger.Container:
-        maven_cache = dag.cache_volume("maven-cache")
 
+        container = dagger.dag.container().from_("maven:3.9-eclipse-temurin-17")
+        maven_cache = dagger.dag.cache_volume("maven-cache")
         app = (
-            dag.container()
-            .from_("maven:3.9-eclipse-temurin-17")
+            container
             .with_mounted_cache("/root/.m2", maven_cache)
             .with_mounted_directory("/src", directory_arg)
             .with_workdir("/src")
-            #     TODO: store report to mounted directory
         )
-        build = await (
-            app.with_exec(["mvn", "clean", "verify"])
+        build = (
+            app.with_exec(["mvn", "jacoco:report", "-DoutputDirectory=/tmp/jacoco"])
+
+            # .with_exec(["apk", "add", "tree"])
+            # .with_exec(["tree", "-L", 2])
         )
-        return build
+        return await build
 
     @function
     async def tree(self, directory_arg: dagger.Directory, depth: str) -> str:
         return await (
-            dag.container()
+            dagger.dag.container()
             .from_("alpine:latest")
             .with_mounted_directory("/src", directory_arg)
             .with_workdir("/src")
@@ -110,7 +119,7 @@ class Intermission2023:
     @function
     async def test_jacoco_report_exists(self, directory_arg: dagger.Directory) -> str:
         return await (
-            dag.container()
+            dagger.dag.container()
             .with_mounted_directory("/src", directory_arg)
             .from_("alpine")
             .with_exec(["ls", "-a", "./src/target/site/jacoco/jacoco.csv"])
@@ -120,13 +129,13 @@ class Intermission2023:
     @function
     def container_echo(self, string_arg: str) -> dagger.Container:
         """Returns a container that echoes whatever string argument is provided"""
-        return dag.container().from_("alpine:latest").with_exec(["echo", string_arg])
+        return dagger.dag.container().from_("alpine:latest").with_exec(["echo", string_arg])
 
     @function
     async def grep_dir(self, directory_arg: dagger.Directory, pattern: str) -> str:
         """Returns lines that match a pattern in the files of the provided Directory"""
         return await (
-            dag.container()
+            dagger.dag.container()
             .from_("alpine:latest")
             .with_mounted_directory("/mnt", directory_arg)
             .with_workdir("/mnt")
@@ -140,7 +149,7 @@ class Intermission2023:
     ) -> str:
         """Build and publish a project using a Wolfi container"""
         # retrieve a new Wolfi container
-        ctr = dag.wolfi().container()
+        ctr = dagger.dag.wolfi().container()
 
         # publish the Wolfi container with the build result
         return await (
@@ -152,24 +161,24 @@ class Intermission2023:
             self,
             image_ref: Annotated[
                 str,
-                Doc("The image reference to scan"),
+                dagger.Doc("The image reference to scan"),
             ],
             severity: Annotated[
                 str,
-                Doc("Severity levels to scan for"),
+                dagger.Doc("Severity levels to scan for"),
             ] = "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL",
             exit_code: Annotated[
                 int,
-                Doc("The exit code to return if vulnerabilities are found"),
+                dagger.Doc("The exit code to return if vulnerabilities are found"),
             ] = 0,
             format: Annotated[
                 str,
-                Doc("The output format to use for the scan results"),
+                dagger.Doc("The output format to use for the scan results"),
             ] = "table",
     ) -> str:
         """Scan the specified image for vulnerabilities."""
         return await (
-            dag.container()
+            dagger.dag.container()
             .from_("aquasec/trivy:latest")
             .with_exec(
                 [
@@ -186,3 +195,8 @@ class Intermission2023:
             )
             .stdout()
         )
+
+
+
+
+
