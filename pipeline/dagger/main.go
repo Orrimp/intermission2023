@@ -1,21 +1,15 @@
-// A generated module for Pipeline functions
+// A Dagger Pipeline to for Intermission
 //
-// This module has been generated via dagger init and serves as a reference to
-// basic module structure as you get started with Dagger.
-//
-// Two functions have been pre-created. You can modify, delete, or add to them,
-// as needed. They demonstrate usage of arguments and return types using simple
-// echo and grep commands. The functions can be called from the dagger CLI or
-// from one of the SDKs.
-//
-// The first line in this comment block is a short description line and the
-// rest is a long description with more detail on the module's purpose or usage,
-// if appropriate. All modules should have a short description.
+// This Pipeliens steps are build with Dagger.io for the Intermission at Senacor
+// It is a simple Pipeline which shows the capabilities of Dagger.io
+// We try to call maven and trivy and show the output of the commdans
+// We also try to retrieve a report file from pipeline step.
 
 package main
 
 import (
 	"context"
+	"fmt"
 )
 
 type Pipeline struct{}
@@ -116,4 +110,43 @@ func (m *Pipeline) runMavenCommand(ctx context.Context, dir *Directory, args ...
 		WithWorkdir("/src").
 		WithExec(append([]string{"mvn"}, args...)).
 		Stdout(ctx)
+}
+
+// Pipeline function to retrieve a test report file from `mvn test` command.
+//
+// Example: dagger call maven-test-artefacts --dir=../ file --path=/usr/src/target/surefire-reports/TEST-com.senacor.intermission.carsharing.CarsharingApplicationTests.xml export --path=$(pwd)/report.xml
+// The return type is a alpine container with the test report file in the /usr/src/target directory
+// To retrieve help for this function, run `dagger call maven-test-artefacts --help`
+func (m *Pipeline) MavenTestArtefacts(
+	// Context of the pipeline
+	ctx context.Context,
+	// Directory to run the maven command in
+	// + required
+	dir *Directory) *Container {
+
+	mavenCache := dag.CacheVolume("maven-cache")
+	buildDir := dag.Container().
+		From("maven:latest").
+		WithMountedCache("/root/.m2", mavenCache).
+		WithMountedDirectory("/src", dir).
+		WithWorkdir("/src").
+		WithExec([]string{"mvn", "test"}).
+		Directory("/src/target")
+
+	fileName := "TEST-com.senacor.intermission.carsharing.CarsharingApplicationTests.xmld"
+
+	file := buildDir.File("surefire-reports/TEST-com.senacor.intermission.carsharing.CarsharingApplicationTests.xml")
+	actualFileName, err := file.Name(ctx)
+
+	if err != nil {
+		fmt.Println("Failed to get file name: %v", err)
+	}
+
+	if actualFileName != fileName {
+		panic("File not found")
+	}
+
+	return dag.Container().
+		From("alpine:latest").
+		WithDirectory("/usr/src/target", buildDir)
 }
