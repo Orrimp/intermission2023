@@ -21,7 +21,7 @@ import dagger
 # from dagger.log import configure_logging
 from typing import Annotated
 
-from dagger.sdk.src.dagger import function, object_type
+from dagger import function, object_type
 
 
 # import logging

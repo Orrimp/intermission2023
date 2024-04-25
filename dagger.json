@@ -3,8 +3,8 @@
   "sdk": "python",
   "dependencies": [
     {
-      "name": "wolfi",
-      "source": "github.com/shykes/daggerverse/wolfi@3d608cb5e6b4b18036a471400bc4e6c753f229d7"
+      "name": "golang",
+      "source": "github.com/kpenfound/dagger-modules/golang@8d662e001caf8c16253226d0d456f2f0f374f009"
     }
   ],
   "source": "dagger",
